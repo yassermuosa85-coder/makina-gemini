@@ -94,7 +94,10 @@ textarea:focus,input:focus{border-color:var(--gold)}
         <div class="sub"><b>@y.tyle</b> · ترند العراق · Gemini Edition</div>
       </div>
     </div>
-    <div class="pill" id="modelPill">gemini</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="pill" id="modelPill">gemini</div>
+      <button id="gearBtn" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;font-size:16px;padding:6px 10px;cursor:pointer">⚙️</button>
+    </div>
   </header>
 
   <!-- ===== كاروسيل ===== -->
@@ -132,10 +135,11 @@ textarea:focus,input:focus{border-color:var(--gold)}
 
   <!-- ===== أخبار ===== -->
   <section class="tab" id="tab-news">
-    <h2 class="sec">📡 رادار أخبار النيش</h2>
-    <p class="hint">Gemini يبحث بكوكل مباشرة ويجيب آخر أخبار التقنية والذكاء الاصطناعي، مرتبة وجاهزة تتحول لمحتوى.</p>
+    <h2 class="sec">📡 الرادار — أخبار وترندات</h2>
+    <p class="hint">Gemini يبحث بكوكل مباشرة: آخر أخبار النيش أو ترندات اليوم مع فكرة الركوب عليها.</p>
     <input type="text" id="newsInput" placeholder="النيش (افتراضي: ذكاء اصطناعي وتقنية)">
     <button class="btn" id="newsGo">جيب آخر الأخبار 📡</button>
+    <button class="btn orange" id="trendGo">🔥 ترندات اليوم + فكرة الركوب</button>
     <div class="status" id="newsStatus"></div>
     <div id="newsOut"></div>
   </section>
@@ -148,6 +152,23 @@ textarea:focus,input:focus{border-color:var(--gold)}
     <button class="btn" id="capGo">ولّد الكابشن ⚡</button>
     <div class="status" id="capStatus"></div>
     <div id="capOut"></div>
+  </section>
+
+  <!-- ===== مصنع الأسبوع ===== -->
+  <section class="tab" id="tab-week">
+    <h2 class="sec">🗓️ مصنع الأسبوع</h2>
+    <p class="hint">زر واحد: المكينة تبحث بآخر أخبار النيش، تختار 7 مواضيع، وتوزعهن على أسبوع كامل — 3 كاروسيلات + 3 ريلز + 1 ستوري، كل واحد بهوكه وكابشنه.</p>
+    <input type="text" id="weekInput" placeholder="النيش (افتراضي: ذكاء اصطناعي وتقنية)">
+    <button class="btn" id="weekGo">خطط لي أسبوع كامل ⚡</button>
+    <div class="status" id="weekStatus"></div>
+    <div id="weekOut"></div>
+  </section>
+
+  <!-- ===== الأرشيف ===== -->
+  <section class="tab" id="tab-arc">
+    <h2 class="sec">💾 أرشيف الإنتاج</h2>
+    <p class="hint">كل شي ولّدته محفوظ بجهازك — استرجعه بضغطة. (آخر 60 توليدة)</p>
+    <div id="arcList"></div>
   </section>
 
   <!-- ===== إعدادات ===== -->
@@ -171,10 +192,11 @@ textarea:focus,input:focus{border-color:var(--gold)}
 
 <nav>
   <button class="on" data-t="car"><span class="ic">🏭</span>كاروسيل</button>
+  <button data-t="week"><span class="ic">🗓️</span>أسبوع</button>
   <button data-t="hook"><span class="ic">🎣</span>هوكات</button>
-  <button data-t="news"><span class="ic">📡</span>أخبار</button>
+  <button data-t="news"><span class="ic">📡</span>رادار</button>
   <button data-t="cap"><span class="ic">✍️</span>كابشن</button>
-  <button data-t="set"><span class="ic">⚙️</span>إعدادات</button>
+  <button data-t="arc"><span class="ic">💾</span>أرشيف</button>
 </nav>
 <script>
 /* ================= إعدادات ================= */
@@ -209,14 +231,15 @@ $('pfpFile').onchange = e => {
 };
 
 /* تنقل التابات */
-document.querySelectorAll('nav button').forEach(b=>{
-  b.onclick=()=>{
-    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on'); $('tab-'+b.dataset.t).classList.add('on');
-    window.scrollTo(0,0);
-  };
-});
+function showTab(t){
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on', x.dataset.t===t));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  $('tab-'+t).classList.add('on');
+  if(t==='arc') renderArc();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav button').forEach(b=>{ b.onclick=()=>showTab(b.dataset.t); });
+$('gearBtn').onclick = ()=>showTab('set');
 
 /* ================= قاموس الاستبدال العراقي ================= */
 const DICT = [['وكفها','اوكفها'],['اوريك','اكلك'],['وقف','اوكف'],['تخزن','تحفظ'],['فوضى','هوسه'],['فون','موبايل'],['طلوع','اضهار'],['احسبني','ادعيلي'],['قدام','كدام'],['عشان','علمود']];
@@ -306,6 +329,7 @@ $('carGo').onclick = async ()=>{
     $('carArea').style.display = 'block';
     $('capText').textContent = fixDialect(data.caption||'');
     $('capCard').style.display = 'block';
+    saveArc('car', SLIDES[0]?.title || topic.slice(0,50), {slides:SLIDES, caption:fixDialect(data.caption||'')});
     st.textContent = '✓ جاهز — '+SLIDES.length+' شرائح';
   }catch(e){ handleErr(st,e); }
 };
@@ -361,7 +385,10 @@ $('hookGo').onclick = async ()=>{
     h += '<div class="card"><div class="tag">SCRIPT — سكربت الريل</div>';
     (d.script||[]).forEach(s=>{ h += '<div style="border-right:3px solid var(--accent);padding-right:10px;margin:12px 0"><b style="color:var(--gold)">'+fixDialect(s.scene)+'</b> <span style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--dim)">'+s.sec+'s</span><br>'+fixDialect(s.text)+'</div>'; });
     h += '</div>';
-    $('hookOut').innerHTML = h; st.textContent = '✓ جاهز';
+    h += '<button class="btn ghost" onclick="makeThumb($(\'hookInput\').value.trim())">🖼️ ولّد ثمبنيل الريل (1080×1920)</button>';
+    $('hookOut').innerHTML = h;
+    saveArc('hook', t.slice(0,50), {html:h});
+    st.textContent = '✓ جاهز';
   }catch(e){ handleErr(st,e); }
 };
 
@@ -385,6 +412,7 @@ $('newsGo').onclick = async ()=>{
       h += '<div class="card"><div class="tag">NEWS '+(i+1)+'</div><h3>'+ (g('العنوان')||'خبر') +'</h3><div>'+g('الخبر')+'</div><div style="margin-top:8px;color:var(--gold);font-size:13px">🎬 '+g('الزاوية')+'</div><button class="copybtn" onclick="sendToCar(this)">حوّله كاروسيل ←</button></div>';
     });
     $('newsOut').innerHTML = h || '<div class="card">ما لكينا نتائج واضحة، جرّب نيش ثاني.</div>';
+    if(h) saveArc('news', 'أخبار — '+niche, {html:h});
     st.textContent = '✓ جاهز';
   }catch(e){ handleErr(st,e); }
 };
@@ -401,6 +429,136 @@ $('capGo').onclick = async ()=>{
   try{
     const txt = await gemini(`اكتب كابشن انستغرام كامل لبوست عن: "${t}". الهيكل: هوك اول سطر يوكّف السكرول + 3-4 اسطر قيمة + CTA (تابع @y.tyle) + 8 هاشتاكات عراقية وتقنية. عراقي بحت، بدون مقدمات.`);
     $('capOut').innerHTML = '<div class="card"><div class="tag">CAPTION</div><div id="capR" style="white-space:pre-wrap">'+txt+'</div><button class="copybtn" onclick="copyEl(\'capR\')">انسخ</button></div>';
+    saveArc('cap', t.slice(0,50), {html:$('capOut').innerHTML});
+    st.textContent = '✓ جاهز';
+  }catch(e){ handleErr(st,e); }
+};
+
+/* ================= الأرشيف ================= */
+const ARCK = 'mk_archive';
+function getArc(){ try{ return JSON.parse(localStorage.getItem(ARCK)||'[]'); }catch(e){ return []; } }
+function saveArc(type, title, data){
+  const a = getArc();
+  a.unshift({id:Date.now(), ts:new Date().toLocaleString('ar-IQ',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'}), type, title, data});
+  localStorage.setItem(ARCK, JSON.stringify(a.slice(0,60)));
+}
+const ARCICON = {car:'🏭', hook:'🎣', news:'📡', trend:'🔥', cap:'✍️', week:'🗓️'};
+function renderArc(){
+  const a = getArc();
+  if(!a.length){ $('arcList').innerHTML = '<div class="card">بعدك ما ولّدت شي — أول توليدة تنحفظ هنا تلقائياً 👌</div>'; return; }
+  $('arcList').innerHTML = a.map(x=>
+    '<div class="card"><div class="tag">'+(ARCICON[x.type]||'📦')+' '+x.ts+'</div><h3>'+x.title+'</h3>'
+    +'<button class="copybtn" onclick="restoreArc('+x.id+')">استرجاع ←</button> '
+    +'<button class="copybtn" style="color:#ff7a6b" onclick="delArc('+x.id+')">حذف</button></div>'
+  ).join('');
+}
+function delArc(id){ localStorage.setItem(ARCK, JSON.stringify(getArc().filter(x=>x.id!==id))); renderArc(); }
+function restoreArc(id){
+  const x = getArc().find(i=>i.id===id); if(!x) return;
+  if(x.type==='car'){
+    SLIDES = x.data.slides; CUR = 0; showSlide();
+    $('carArea').style.display='block'; $('capText').textContent = x.data.caption||''; $('capCard').style.display='block';
+    showTab('car');
+  } else if(x.type==='week'){ WEEKPLAN = x.data.plan; renderWeek(); showTab('week'); }
+  else {
+    const target = {hook:'hookOut', news:'newsOut', trend:'newsOut', cap:'capOut'}[x.type];
+    $(target).innerHTML = x.data.html; showTab(x.type==='trend'?'news':x.type);
+  }
+}
+
+/* ================= مولد الثمبنيل (Canvas 2D) ================= */
+function wrapCanvasText(ctx, text, maxW){
+  const words = text.split(' '), lines = []; let line = '';
+  words.forEach(w=>{
+    const t = line ? line+' '+w : w;
+    if(ctx.measureText(t).width > maxW && line){ lines.push(line); line = w; } else line = t;
+  });
+  if(line) lines.push(line);
+  return lines;
+}
+async function makeThumb(title){
+  await document.fonts.ready;
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1920;
+  const x = c.getContext('2d');
+  x.fillStyle = '#1A1A22'; x.fillRect(0,0,1080,1920);
+  x.direction = 'rtl'; x.textAlign = 'right';
+  x.fillStyle = '#E85D28'; x.font = '700 44px Cairo'; x.fillText('ترند العراق', 990, 300);
+  x.fillRect(830, 340, 160, 14);
+  x.fillStyle = '#E7E3DD'; x.font = '900 108px Cairo';
+  const lines = wrapCanvasText(x, title, 880); let y = 520;
+  lines.slice(0,6).forEach(l=>{ x.fillText(l, 990, y); y += 150; });
+  x.fillStyle = '#D4A843'; x.font = '700 46px Cairo'; x.fillText('شاهد للنهاية 👇', 990, y+40);
+  /* براند بار صلب */
+  x.fillStyle = '#111117'; x.fillRect(0, 1720, 1080, 200);
+  if(PFP){
+    const img = new Image(); img.src = PFP;
+    await new Promise(r=>{ img.onload = r; img.onerror = r; });
+    x.save(); x.beginPath(); x.arc(970, 1820, 55, 0, 7); x.clip(); x.drawImage(img, 915, 1765, 110, 110); x.restore();
+    x.strokeStyle = '#D4A843'; x.lineWidth = 5; x.beginPath(); x.arc(970, 1820, 55, 0, 7); x.stroke();
+  } else { x.strokeStyle = '#D4A843'; x.lineWidth = 5; x.beginPath(); x.arc(970, 1820, 55, 0, 7); x.stroke(); }
+  x.fillStyle = '#E7E3DD'; x.font = '900 56px Cairo'; x.fillText('@y.tyle', 890, 1840);
+  x.fillStyle = '#1D9BF0'; x.beginPath(); x.arc(600, 1820, 26, 0, 7); x.fill();
+  x.strokeStyle = '#fff'; x.lineWidth = 6; x.beginPath(); x.moveTo(586,1820); x.lineTo(597,1832); x.lineTo(616,1808); x.stroke();
+  x.fillStyle = '#D4A843'; x.font = '700 34px Cairo'; x.textAlign = 'left'; x.fillText('TREND IRAQ', 80, 1832);
+  const a = document.createElement('a');
+  a.download = 'ytyle-thumb.png'; a.href = c.toDataURL('image/png'); a.click();
+}
+
+/* ================= مصنع الأسبوع ================= */
+let WEEKPLAN = [];
+const WTYPE = {carousel:['🏭','كاروسيل'], reel:['🎬','ريل'], story:['📱','ستوري']};
+function renderWeek(){
+  $('weekOut').innerHTML = WEEKPLAN.map((d,i)=>{
+    const [ic,nm] = WTYPE[d.type] || ['📌', d.type];
+    let btns = '';
+    if(d.type==='carousel') btns = '<button class="copybtn" onclick="weekToCar('+i+')">🏭 ولّده كاروسيل ←</button>';
+    if(d.type==='reel') btns = '<button class="copybtn" onclick="weekToHook('+i+')">🎣 ولّد السكربت ←</button> <button class="copybtn" onclick="makeThumb(WEEKPLAN['+i+'].topic)">🖼️ ثمبنيل</button>';
+    return '<div class="card"><div class="tag">'+d.day+' — '+ic+' '+nm+'</div><h3>'+d.topic+'</h3>'
+      +'<div><b style="color:var(--gold)">الهوك:</b> '+d.hook+'</div>'
+      +'<div style="margin-top:6px;color:var(--dim);font-size:13px">✍️ '+d.caption+'</div>'
+      +'<div style="margin-top:8px">'+btns+'</div></div>';
+  }).join('');
+}
+function weekToCar(i){ $('carInput').value = WEEKPLAN[i].topic + ' — ' + WEEKPLAN[i].hook; showTab('car'); }
+function weekToHook(i){ $('hookInput').value = WEEKPLAN[i].topic; showTab('hook'); }
+$('weekGo').onclick = async ()=>{
+  const niche = $('weekInput').value.trim() || 'الذكاء الاصطناعي والتقنية';
+  const st = $('weekStatus'); busy(st,'دا نبحث ونخطط الأسبوع... (ياخذ شوي)');
+  try{
+    const raw = await gemini(
+`دوّر بالبحث عن اهم واحدث اخبار وترندات مجال: ${niche}.
+بعدها اختار 7 مواضيع قوية ووزعهن على اسبوع كامل: 3 كاروسيلات + 3 ريلز + 1 ستوري.
+رجّع JSON فقط بدون اي نص قبله او بعده:
+{"plan":[{"day":"السبت","type":"carousel او reel او story","topic":"الموضوع بجملة","hook":"هوك بصيغة: نفي مشهور، ليش لا، البديل، ليش افضل","caption":"سطر كابشن"}]}
+كله باللهجة العراقية البحتة.`, {search:true});
+    const d = parseJSON(raw);
+    WEEKPLAN = (d.plan||[]).map(p=>({...p, topic:fixDialect(p.topic||''), hook:fixDialect(p.hook||''), caption:fixDialect(p.caption||'')}));
+    renderWeek();
+    saveArc('week', 'خطة أسبوع — '+niche, {plan:WEEKPLAN});
+    st.textContent = '✓ خطة '+WEEKPLAN.length+' أيام جاهزة';
+  }catch(e){ handleErr(st,e); }
+};
+
+/* ================= الترندات ================= */
+$('trendGo').onclick = async ()=>{
+  const niche = $('newsInput').value.trim() || 'العراق والتقنية والسوشيال ميديا';
+  const st = $('newsStatus'); busy(st,'دا نصطاد الترندات...');
+  try{
+    const raw = await gemini(
+`دوّر بالبحث عن اهم 5 ترندات رائجة هسه (آخر ايام) بمجال: ${niche}.
+رجّع النتيجة بهذا الشكل بالضبط، لكل ترند:
+###
+العنوان: (اسم الترند بالعراقي)
+الخبر: (ليش رائج هسه، سطرين)
+الزاوية: (شلون @y.tyle يركب عليه اليوم بمحتوى بنفس النيش)`, {search:true});
+    const items = raw.split('###').map(x=>x.trim()).filter(x=>x.length>20);
+    let h = '';
+    items.forEach((x,i)=>{
+      const g = k => (x.match(new RegExp(k+':\\s*([^\\n]+(?:\\n(?!\\S+:)[^\\n]+)*)')) || [,''])[1].trim();
+      h += '<div class="card"><div class="tag">🔥 TREND '+(i+1)+'</div><h3>'+(g('العنوان')||'ترند')+'</h3><div>'+g('الخبر')+'</div><div style="margin-top:8px;color:var(--gold);font-size:13px">🎬 '+g('الزاوية')+'</div><button class="copybtn" onclick="sendToCar(this)">حوّله كاروسيل ←</button></div>';
+    });
+    $('newsOut').innerHTML = h || '<div class="card">ما لكينا ترندات واضحة، جرّب نيش ثاني.</div>';
+    saveArc('trend', 'ترندات — '+niche, {html:$('newsOut').innerHTML});
     st.textContent = '✓ جاهز';
   }catch(e){ handleErr(st,e); }
 };
