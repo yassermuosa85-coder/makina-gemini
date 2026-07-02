@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>مكينة المحتوى — Gemini Edition | @y.tyle</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --bg:#131318; --panel:#1A1A22; --panel2:#22222c; --line:#2e2e3a;
+  --gold:#D4A843; --accent:#E85D28; --paper:#E7E3DD;
+  --text:#EFEDE8; --dim:#9a97a3;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;min-height:100vh;text-align:right}
+.wrap{max-width:520px;margin:0 auto;padding:0 14px 90px}
+
+/* ===== Header ===== */
+header{padding:18px 2px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .avatar{width:42px;height:42px;border-radius:50%;background:var(--panel2);border:2px solid var(--gold);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.brand .avatar img{width:100%;height:100%;object-fit:cover}
+.brand h1{font-size:17px;font-weight:900;line-height:1.2}
+.brand .sub{font-size:11px;color:var(--dim);font-weight:600}
+.brand .sub b{color:var(--gold)}
+.pill{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--bg);background:var(--gold);padding:4px 10px;border-radius:20px;font-weight:700}
+
+/* ===== Tabs ===== */
+nav{position:fixed;bottom:0;right:0;left:0;background:var(--panel);border-top:1px solid var(--line);display:flex;z-index:50}
+nav button{flex:1;background:none;border:none;color:var(--dim);font-family:'Cairo';font-weight:700;font-size:11px;padding:10px 2px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button .ic{font-size:18px}
+nav button.on{color:var(--gold)}
+nav button.on .ic{transform:translateY(-1px)}
+.tab{display:none;padding-top:16px}
+.tab.on{display:block}
+
+/* ===== Common UI ===== */
+h2.sec{font-size:15px;font-weight:900;margin-bottom:4px}
+p.hint{font-size:12px;color:var(--dim);margin-bottom:12px;line-height:1.7}
+textarea,input[type=text],input[type=password],select{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--text);font-family:'Cairo';font-size:14px;padding:12px;outline:none;text-align:right}
+textarea{min-height:110px;resize:vertical;line-height:1.8}
+textarea:focus,input:focus{border-color:var(--gold)}
+.btn{width:100%;background:var(--gold);color:#131318;border:none;border-radius:12px;font-family:'Cairo';font-weight:900;font-size:15px;padding:14px;margin-top:12px;cursor:pointer}
+.btn:disabled{opacity:.45}
+.btn.orange{background:var(--accent);color:#fff}
+.btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.status{font-size:12px;color:var(--dim);margin-top:10px;min-height:18px;font-weight:600}
+.status.err{color:#ff7a6b}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px;line-height:1.9;font-size:14px}
+.card .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);border:1px solid var(--accent);border-radius:20px;padding:2px 10px;margin-bottom:8px;font-weight:700}
+.card h3{font-size:15px;font-weight:900;margin-bottom:6px}
+.copybtn{background:var(--panel2);border:1px solid var(--line);color:var(--gold);border-radius:8px;font-family:'Cairo';font-weight:700;font-size:12px;padding:6px 14px;margin-top:8px;cursor:pointer}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-left:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+
+/* ===== Carousel stage ===== */
+#stage{position:relative;overflow:hidden;width:100%;max-width:400px;margin:14px auto 0;border-radius:6px;background:var(--panel2)}
+#stage .inner{position:relative;overflow:hidden;width:400px;height:500px}
+.frame{width:1080px;height:1350px;transform:scale(0.37037);transform-origin:top left;position:absolute;top:0;left:0}
+.slidebar{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px}
+.slidebar button{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;font-family:'Cairo';font-weight:900;font-size:14px;padding:8px 16px;cursor:pointer}
+.slidebar span{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold)}
+
+/* ===== Slide design (Editorial Code) ===== */
+.slide{width:1080px;height:1350px;position:relative;overflow:hidden;font-family:'Cairo',sans-serif}
+.slide *{letter-spacing:0 !important}
+.slide .content{position:absolute;inset:0;padding:90px 80px 190px;display:flex;flex-direction:column;justify-content:center;text-align:right}
+.slide .ar{word-break:keep-all}
+.s-light{background:#E7E3DD;color:#1A1A22}
+.s-dark{background:#1A1A22;color:#E7E3DD}
+.slide .kick{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:#E85D28;margin-bottom:34px;text-align:right}
+.slide .idx{position:absolute;top:70px;left:80px;font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:#E85D28}
+.slide h1.t{font-weight:900;font-size:92px;line-height:1.35;margin-bottom:40px;text-align:right;word-break:keep-all}
+.slide p.b{font-weight:600;font-size:44px;line-height:2;text-align:right;word-break:keep-all}
+.slide .rule{width:140px;height:10px;background:#E85D28;margin:0 0 44px auto}
+.brandbar{position:absolute;bottom:0;left:0;right:0;height:120px;background:#111117;display:flex;align-items:center;justify-content:flex-end;gap:22px;padding:0 80px}
+.s-light .brandbar{background:#1A1A22}
+.brandbar .pi{width:70px;height:70px;border-radius:50%;border:3px solid #D4A843;background:#22222c;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.brandbar .pi img{width:100%;height:100%;object-fit:cover}
+.brandbar .nm{color:#E7E3DD;font-weight:900;font-size:34px;text-align:right}
+.brandbar .vf{width:34px;height:34px}
+.brandbar .tr{margin-right:auto;color:#D4A843;font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="avatar" id="uiAvatar"><span style="color:var(--gold);font-weight:900">Y</span></div>
+      <div>
+        <h1>مكينة المحتوى</h1>
+        <div class="sub"><b>@y.tyle</b> · ترند العراق · Gemini Edition</div>
+      </div>
+    </div>
+    <div class="pill" id="modelPill">gemini</div>
+  </header>
+
+  <!-- ===== كاروسيل ===== -->
+  <section class="tab on" id="tab-car">
+    <h2 class="sec">🏭 مكينة الكاروسيل</h2>
+    <p class="hint">الصك الخبر أو الموضوع، والمكينة تولّد كاروسيل كامل بستايل Editorial Code + كابشن جاهز. التصدير PNG بدقة 1080×1350.</p>
+    <textarea id="carInput" placeholder="مثال: OpenAI أطلقت موديل جديد اسمه..."></textarea>
+    <input type="text" id="carCount" placeholder="عدد الشرائح (افتراضي 6)" inputmode="numeric" style="margin-top:10px">
+    <button class="btn" id="carGo">ولّد الكاروسيل ⚡</button>
+    <div class="status" id="carStatus"></div>
+    <div id="carArea" style="display:none">
+      <div id="stage"><div class="inner"><div class="frame" id="frame"></div></div></div>
+      <div class="slidebar">
+        <button id="prevS">‹</button><span id="sNum">1 / 1</span><button id="nextS">›</button>
+      </div>
+      <button class="btn orange" id="expOne">تصدير هاي الشريحة PNG</button>
+      <button class="btn ghost" id="expAll">تصدير كل الشرائح</button>
+      <div class="card" id="capCard" style="display:none">
+        <div class="tag">CAPTION</div>
+        <div id="capText" style="white-space:pre-wrap"></div>
+        <button class="copybtn" onclick="copyEl('capText')">انسخ الكابشن</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== هوكات ===== -->
+  <section class="tab" id="tab-hook">
+    <h2 class="sec">🎣 مكينة الهوكات والسكربتات</h2>
+    <p class="hint">صيغة الهوك الثابتة: نفي المشهور ← ليش لا ← البديل ← ليش أفضل. كل النتائج باللهجة العراقية البحتة.</p>
+    <textarea id="hookInput" placeholder="شنو موضوع الريل؟ مثال: تطبيق مجاني بديل عن CapCut"></textarea>
+    <button class="btn" id="hookGo">ولّد 5 هوكات + سكربت ⚡</button>
+    <div class="status" id="hookStatus"></div>
+    <div id="hookOut"></div>
+  </section>
+
+  <!-- ===== أخبار ===== -->
+  <section class="tab" id="tab-news">
+    <h2 class="sec">📡 رادار أخبار النيش</h2>
+    <p class="hint">Gemini يبحث بكوكل مباشرة ويجيب آخر أخبار التقنية والذكاء الاصطناعي، مرتبة وجاهزة تتحول لمحتوى.</p>
+    <input type="text" id="newsInput" placeholder="النيش (افتراضي: ذكاء اصطناعي وتقنية)">
+    <button class="btn" id="newsGo">جيب آخر الأخبار 📡</button>
+    <div class="status" id="newsStatus"></div>
+    <div id="newsOut"></div>
+  </section>
+
+  <!-- ===== كابشن ===== -->
+  <section class="tab" id="tab-cap">
+    <h2 class="sec">✍️ مكينة الكابشن</h2>
+    <p class="hint">كابشن انستغرام/تيك توك كامل: هوك أول سطر + قيمة + CTA + هاشتاكات عراقية.</p>
+    <textarea id="capInput" placeholder="شنو موضوع البوست؟"></textarea>
+    <button class="btn" id="capGo">ولّد الكابشن ⚡</button>
+    <div class="status" id="capStatus"></div>
+    <div id="capOut"></div>
+  </section>
+
+  <!-- ===== إعدادات ===== -->
+  <section class="tab" id="tab-set">
+    <h2 class="sec">⚙️ الإعدادات</h2>
+    <p class="hint">مفتاح Gemini API تجيبه مجاناً من <b>aistudio.google.com</b> ← Get API key. ينحفظ بجهازك فقط، ما يطلع لأي مكان ثاني.</p>
+    <input type="password" id="apiKey" placeholder="AIza...">
+    <select id="modelSel" style="margin-top:10px">
+      <option value="gemini-2.5-flash">gemini-2.5-flash (سريع — الافتراضي)</option>
+      <option value="gemini-2.5-pro">gemini-2.5-pro (أذكى — أبطأ)</option>
+      <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+    </select>
+    <div style="margin-top:14px">
+      <p class="hint" style="margin-bottom:6px">صورة بروفايل @y.tyle (تنحط على كل شريحة):</p>
+      <input type="file" id="pfpFile" accept="image/*" style="color:var(--dim);font-size:12px">
+    </div>
+    <button class="btn" id="saveSet">احفظ الإعدادات ✓</button>
+    <div class="status" id="setStatus"></div>
+  </section>
+</div>
+
+<nav>
+  <button class="on" data-t="car"><span class="ic">🏭</span>كاروسيل</button>
+  <button data-t="hook"><span class="ic">🎣</span>هوكات</button>
+  <button data-t="news"><span class="ic">📡</span>أخبار</button>
+  <button data-t="cap"><span class="ic">✍️</span>كابشن</button>
+  <button data-t="set"><span class="ic">⚙️</span>إعدادات</button>
+</nav>
+<script>
+/* ================= إعدادات ================= */
+const LS = {key:'mk_gemini_key', model:'mk_gemini_model', pfp:'mk_pfp_b64'};
+const $ = id => document.getElementById(id);
+let PFP = localStorage.getItem(LS.pfp) || '';
+
+function loadSet(){
+  $('apiKey').value = localStorage.getItem(LS.key) || '';
+  $('modelSel').value = localStorage.getItem(LS.model) || 'gemini-2.5-flash';
+  $('modelPill').textContent = $('modelSel').value.replace('gemini-','G ');
+  if(PFP) $('uiAvatar').innerHTML = '<img src="'+PFP+'">';
+}
+$('saveSet').onclick = () => {
+  localStorage.setItem(LS.key, $('apiKey').value.trim());
+  localStorage.setItem(LS.model, $('modelSel').value);
+  $('setStatus').textContent = 'انحفظت ✓';
+  loadSet();
+};
+$('pfpFile').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const img = new Image(); const rd = new FileReader();
+  rd.onload = ev => { img.onload = () => {
+    const c = document.createElement('canvas'); c.width = 500; c.height = 500;
+    const x = c.getContext('2d'); const s = Math.min(img.width, img.height);
+    x.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,500,500);
+    PFP = c.toDataURL('image/png');
+    localStorage.setItem(LS.pfp, PFP); loadSet();
+    $('setStatus').textContent = 'الصورة انحفظت ✓';
+  }; img.src = ev.target.result; };
+  rd.readAsDataURL(f);
+};
+
+/* تنقل التابات */
+document.querySelectorAll('nav button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); $('tab-'+b.dataset.t).classList.add('on');
+    window.scrollTo(0,0);
+  };
+});
+
+/* ================= قاموس الاستبدال العراقي ================= */
+const DICT = [['وكفها','اوكفها'],['اوريك','اكلك'],['وقف','اوكف'],['تخزن','تحفظ'],['فوضى','هوسه'],['فون','موبايل'],['طلوع','اضهار'],['احسبني','ادعيلي'],['قدام','كدام'],['عشان','علمود']];
+function fixDialect(t){ DICT.forEach(([a,b])=>{ t = t.split(a).join(b); }); return t; }
+
+/* ================= نداء Gemini ================= */
+const SYS = `انت مساعد صانع محتوى عراقي (@y.tyle - ترند العراق - 34K متابع).
+قواعد صارمة لا تُخرق:
+1. كل النصوص باللهجة العراقية البحتة فقط. ممنوع الفصحى وممنوع اللهجات الثانية.
+2. استبدالات الزامية: وكفها→اوكفها | اوريك→اكلك | وقف→اوكف | تخزن→تحفظ | فوضى→هوسه | فون→موبايل | طلوع→اضهار | احسبني→ادعيلي | قدام→كدام | عشان→علمود
+3. صيغة الهوك: (1) نفي شي مشهور (2) ليش ما تستخدمه (3) البديل (4) ليش البديل أفضل.
+4. الاسلوب: مباشر، قصير، بدون حشو، يخاطب الجمهور العراقي.`;
+
+async function gemini(userText, {json=false, search=false} = {}){
+  const key = localStorage.getItem(LS.key);
+  if(!key) throw new Error('NOKEY');
+  const model = localStorage.getItem(LS.model) || 'gemini-2.5-flash';
+  const body = {
+    systemInstruction:{parts:[{text:SYS}]},
+    contents:[{role:'user',parts:[{text:userText}]}],
+    generationConfig:{temperature:0.9}
+  };
+  if(json && !search) body.generationConfig.responseMimeType = 'application/json';
+  if(search) body.tools = [{google_search:{}}];
+  const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(key),
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d = await r.json();
+  if(d.error) throw new Error(d.error.message || 'API error');
+  const parts = d.candidates?.[0]?.content?.parts || [];
+  return fixDialect(parts.map(p=>p.text||'').join('\n'));
+}
+function parseJSON(t){
+  t = t.replace(/```json|```/g,'').trim();
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  return JSON.parse(t.slice(a, b+1));
+}
+function handleErr(el, e){
+  if(e.message === 'NOKEY'){ el.textContent = '⚠️ روح للإعدادات وحط مفتاح Gemini API أول'; }
+  else el.textContent = '⚠️ صار خطأ: ' + e.message;
+  el.classList.add('err');
+}
+function copyEl(id){ navigator.clipboard.writeText($(id).innerText); }
+const busy = (el,msg)=>{ el.classList.remove('err'); el.innerHTML = msg+'<span class="spin"></span>'; };
+
+/* ================= الكاروسيل ================= */
+let SLIDES = [], CUR = 0;
+const VF = '<svg class="vf" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1D9BF0"/><path d="M7 12.5l3 3 7-7" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function brandBar(){
+  const pi = PFP ? '<img src="'+PFP+'">' : '<span style="color:#D4A843;font-weight:900;font-size:36px">Y</span>';
+  return '<div class="brandbar"><div class="tr">TREND IRAQ</div>'+VF+'<div class="nm">@y.tyle</div><div class="pi">'+pi+'</div></div>';
+}
+function slideHTML(s, i, n){
+  const dark = (s.theme==='dark' || i===0 || i===n-1);
+  const cls = dark ? 's-dark' : 's-light';
+  let inner = '<div class="idx">'+String(i+1).padStart(2,'0')+' / '+String(n).padStart(2,'0')+'</div>';
+  inner += '<div class="content"><div class="kick ar">'+(s.tag||'ترند العراق')+'</div><div class="rule"></div>';
+  inner += '<h1 class="t ar">'+s.title+'</h1>';
+  if(s.body) inner += '<p class="b ar">'+s.body+'</p>';
+  inner += '</div>' + brandBar();
+  return '<div class="slide '+cls+'">'+inner+'</div>';
+}
+function showSlide(){
+  const n = SLIDES.length;
+  $('frame').innerHTML = slideHTML(SLIDES[CUR], CUR, n);
+  $('sNum').textContent = (CUR+1)+' / '+n;
+}
+$('prevS').onclick = ()=>{ if(CUR>0){CUR--; showSlide();} };
+$('nextS').onclick = ()=>{ if(CUR<SLIDES.length-1){CUR++; showSlide();} };
+
+$('carGo').onclick = async ()=>{
+  const topic = $('carInput').value.trim(); if(!topic) return;
+  const n = parseInt($('carCount').value) || 6;
+  const st = $('carStatus'); busy(st,'دا نولّد الكاروسيل...');
+  try{
+    const raw = await gemini(
+`حوّل هذا الموضوع لكاروسيل انستغرام من ${n} شرائح بستايل تحريري قوي:
+"${topic}"
+
+رجّع JSON فقط بهذا الشكل بالضبط:
+{"slides":[{"tag":"كلمة او كلمتين فوك العنوان","title":"عنوان قصير قوي (اقصى 8 كلمات)","body":"نص الشريحة (سطرين لثلاثة، او فارغ للغلاف)","theme":"dark او light"}],"caption":"كابشن كامل: هوك + قيمة + CTA + هاشتاكات"}
+
+الشريحة الاولى غلاف بعنوان صادم بدون body طويل. الاخيرة CTA (تابع @y.tyle). كل النصوص عراقي بحت.`, {json:true});
+    const data = parseJSON(raw);
+    SLIDES = data.slides.map(s=>({...s, title:fixDialect(s.title||''), body:fixDialect(s.body||''), tag:fixDialect(s.tag||'')}));
+    CUR = 0; showSlide();
+    $('carArea').style.display = 'block';
+    $('capText').textContent = fixDialect(data.caption||'');
+    $('capCard').style.display = 'block';
+    st.textContent = '✓ جاهز — '+SLIDES.length+' شرائح';
+  }catch(e){ handleErr(st,e); }
+};
+
+/* تصدير PNG — clone خارج الـtransform + scale:3 */
+async function exportSlide(i){
+  const holder = document.createElement('div');
+  holder.style.cssText = 'position:fixed;top:0;left:-99999px;width:1080px;height:1350px';
+  holder.innerHTML = slideHTML(SLIDES[i], i, SLIDES.length);
+  document.body.appendChild(holder);
+  await new Promise(r=>setTimeout(r,250));
+  const canvas = await html2canvas(holder.firstChild, {scale:3, windowWidth:1080, windowHeight:1350, backgroundColor:null, useCORS:true});
+  const a = document.createElement('a');
+  a.download = 'ytyle-slide-'+String(i+1).padStart(2,'0')+'.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  holder.remove();
+}
+$('expOne').onclick = async ()=>{
+  const st = $('carStatus'); busy(st,'دا نصدّر...');
+  const f = $('frame'); const old = f.style.transform; f.style.transform = 'none';
+  try{ await exportSlide(CUR); st.textContent='✓ نزلت'; }
+  catch(e){ handleErr(st,e); }
+  f.style.transform = old;
+};
+$('expAll').onclick = async ()=>{
+  const st = $('carStatus');
+  const f = $('frame'); const old = f.style.transform; f.style.transform = 'none';
+  try{
+    for(let i=0;i<SLIDES.length;i++){
+      busy(st,'شريحة '+(i+1)+' من '+SLIDES.length+'...');
+      await exportSlide(i);
+      await new Promise(r=>setTimeout(r,500));
+    }
+    st.textContent = '✓ كلهن نزلن';
+  }catch(e){ handleErr(st,e); }
+  f.style.transform = old;
+};
+
+/* ================= الهوكات ================= */
+$('hookGo').onclick = async ()=>{
+  const t = $('hookInput').value.trim(); if(!t) return;
+  const st = $('hookStatus'); busy(st,'دا نولّد الهوكات...');
+  try{
+    const raw = await gemini(
+`الموضوع: "${t}"
+ولّد JSON فقط:
+{"hooks":["5 هوكات مختلفة، كل واحد بصيغة الاربع خطوات مدموجة بجملة او جملتين"],"script":[{"scene":"اسم المشهد","sec":"المدة بالثواني","text":"النص الصوتي"}]}
+السكربت لريل 30-45 ثانية، 4-6 مشاهد. كله عراقي بحت.`, {json:true});
+    const d = parseJSON(raw);
+    let h = '';
+    (d.hooks||[]).forEach((x,i)=>{ h += '<div class="card"><div class="tag">HOOK '+(i+1)+'</div><div id="hk'+i+'">'+fixDialect(x)+'</div><button class="copybtn" onclick="copyEl(\'hk'+i+'\')">انسخ</button></div>'; });
+    h += '<div class="card"><div class="tag">SCRIPT — سكربت الريل</div>';
+    (d.script||[]).forEach(s=>{ h += '<div style="border-right:3px solid var(--accent);padding-right:10px;margin:12px 0"><b style="color:var(--gold)">'+fixDialect(s.scene)+'</b> <span style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--dim)">'+s.sec+'s</span><br>'+fixDialect(s.text)+'</div>'; });
+    h += '</div>';
+    $('hookOut').innerHTML = h; st.textContent = '✓ جاهز';
+  }catch(e){ handleErr(st,e); }
+};
+
+/* ================= الأخبار (Google Search grounding) ================= */
+$('newsGo').onclick = async ()=>{
+  const niche = $('newsInput').value.trim() || 'الذكاء الاصطناعي والتقنية';
+  const st = $('newsStatus'); busy(st,'دا ندوّر بكوكل...');
+  try{
+    const raw = await gemini(
+`دوّر بالبحث عن اهم 6 اخبار من آخر ايام بمجال: ${niche}.
+بعد البحث، رجّع النتيجة بهذا الشكل بالضبط (بدون اي شي قبل او بعد):
+لكل خبر:
+###
+العنوان: (عنوان عراقي جذاب)
+الخبر: (سطرين شرح بالعراقي)
+الزاوية: (شلون يتحول لريل او كاروسيل لجمهور @y.tyle)`, {search:true});
+    const items = raw.split('###').map(x=>x.trim()).filter(x=>x.length>20);
+    let h = '';
+    items.forEach((x,i)=>{
+      const g = k => (x.match(new RegExp(k+':\\s*([^\\n]+(?:\\n(?!\\S+:)[^\\n]+)*)')) || [,''])[1].trim();
+      h += '<div class="card"><div class="tag">NEWS '+(i+1)+'</div><h3>'+ (g('العنوان')||'خبر') +'</h3><div>'+g('الخبر')+'</div><div style="margin-top:8px;color:var(--gold);font-size:13px">🎬 '+g('الزاوية')+'</div><button class="copybtn" onclick="sendToCar(this)">حوّله كاروسيل ←</button></div>';
+    });
+    $('newsOut').innerHTML = h || '<div class="card">ما لكينا نتائج واضحة، جرّب نيش ثاني.</div>';
+    st.textContent = '✓ جاهز';
+  }catch(e){ handleErr(st,e); }
+};
+function sendToCar(btn){
+  const card = btn.closest('.card');
+  $('carInput').value = card.querySelector('h3').innerText + ' — ' + card.querySelectorAll('div')[1].innerText;
+  document.querySelector('nav button[data-t=car]').click();
+}
+
+/* ================= الكابشن ================= */
+$('capGo').onclick = async ()=>{
+  const t = $('capInput').value.trim(); if(!t) return;
+  const st = $('capStatus'); busy(st,'دا نكتب...');
+  try{
+    const txt = await gemini(`اكتب كابشن انستغرام كامل لبوست عن: "${t}". الهيكل: هوك اول سطر يوكّف السكرول + 3-4 اسطر قيمة + CTA (تابع @y.tyle) + 8 هاشتاكات عراقية وتقنية. عراقي بحت، بدون مقدمات.`);
+    $('capOut').innerHTML = '<div class="card"><div class="tag">CAPTION</div><div id="capR" style="white-space:pre-wrap">'+txt+'</div><button class="copybtn" onclick="copyEl(\'capR\')">انسخ</button></div>';
+    st.textContent = '✓ جاهز';
+  }catch(e){ handleErr(st,e); }
+};
+
+loadSet();
+</script>
+</body>
+</html>
